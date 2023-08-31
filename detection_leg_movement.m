@@ -1,6 +1,10 @@
 function peak_time_frames = detection_leg_movement(video_filename,status,start_frame,end_frame)
     % Specify the filename of the video
+    parameter=3.5;% This parameter can be changed if the detection is troublesome, but 3.5 should be the best for the current task
     
+
+   %declare the parameter that may influence the detection of time:
+
     % Create a VideoReader object to read the video file
     video = VideoReader(video_filename);
     
@@ -92,7 +96,7 @@ function peak_time_frames = detection_leg_movement(video_filename,status,start_f
         current_white_pixels = white_pixels(i);
         next_white_pixels = white_pixels(i+1);
         diff_white_pixels=abs(next_white_pixels-current_white_pixels);
-        if diff_white_pixels>7*mean_diff
+        if diff_white_pixels>parameter*mean_diff
             peak_time_frames(1,i)=1;
         end
     end
