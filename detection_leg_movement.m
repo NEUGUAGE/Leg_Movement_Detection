@@ -44,6 +44,27 @@ function peak_time_frames = detection_leg_movement(video_filename,status)
         rescaled_frames(:, :, i) = frame;
     end
     
+    threshold = 0.95;
+    binary_frames = imbinarize(rescaled_frames, threshold);
+    
+    
+    % Initialize an array to hold the filtered binary frames
+    filtered_frames = zeros(size(binary_frames));
+    
+    % Loop over each frame, starting from the second frame
+    for i = 2:num_frames
+        % Get the current frame and the previous frame
+        current_frame = binary_frames(:, :, i);
+        previous_frame = binary_frames(:, :, i-1);
+    
+        % Compute the difference between the current and previous frames
+        diff_frame = abs(double(current_frame) - double(previous_frame));
+    
+        % Store the difference frame in the filtered_frames array
+        filtered_frames(:, :, i) = diff_frame;
+    end
+    
+    
     % Initialize an array to hold the number of white pixels for each frame
     white_pixels = zeros(1, num_frames);
     
