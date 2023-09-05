@@ -1,6 +1,6 @@
 function peak_time_frames = detection_leg_movement(video_filename,status)
     % Specify the filename of the video
-    parameter=3.2;% This parameter can be changed if the detection is troublesome, but 3-3.5 should be the best for the current task
+    parameter=4;% This parameter can be changed if the detection is troublesome, but 3-3.5 should be the best for the current task
 
    %declare the parameter that may influence the detection of time:
 
@@ -97,7 +97,30 @@ function peak_time_frames = detection_leg_movement(video_filename,status)
             peak_time_frames(1,i)=1;
         end
     end
-    %% 
+
+%%   do a backpropagation to all the time frame and ensure a smooth 1 and 0s
+    num_time_frames = length(peak_time_frames);
+    
+    % Initialize an array to hold the modified peak time frames
+    modified_peak_time_frames = peak_time_frames;
+    
+    % Loop over each time frame, starting from the second frame
+    for i = 2:num_time_frames
+        % Check if the current time frame is a peak time frame
+        if peak_time_frames(i) == 1
+            
+            % Set the previous 10 time frames to 1
+            for reduce_frame = 1:10
+                
+                % Check if the index is within the bounds of the array
+                if i - reduce_frame >= 1
+                    modified_peak_time_frames(1,i - reduce_frame) = 1;
+                end
+            end
+        end
+    end
+    peak_time_frames=modified_peak_time_frames;
+    %% This section is for creating an annotated video
     if status ==1
     % Create a VideoReader object to read the video file
     video = VideoReader(video_filename);
@@ -115,14 +138,13 @@ function peak_time_frames = detection_leg_movement(video_filename,status)
     for i = 1:num_frames
         % Check if the current frame is a peak time frame
         if peak_time_frames(i) == 1
-            % Annotate the current frame and the next 9 frames with "Leg Movement"
-            for j = i:min(i+20, num_frames)
+            % Annotate the current frame with "Leg Movement"
+            for j = i:min(i+1, num_frames)
                 annotated_frames(:, :, :, j) = insertText(annotated_frames(:, :, :, j), [20 20], 'Leg Movement', 'FontSize', 15, 'BoxColor', 'white', 'BoxOpacity', 0.3);
             end
         end
     end
     %%
-    %%%%%%%%% create a annotated video version%%%%%%%%%%%%%%%%%%%%%%
     % Create a VideoWriter object to write the annotated video to a file
     annotated_video = VideoWriter('annotated_video.avi');
     
