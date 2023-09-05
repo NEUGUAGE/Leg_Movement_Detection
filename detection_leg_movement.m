@@ -1,7 +1,6 @@
-function peak_time_frames = detection_leg_movement(video_filename,status,start_frame,end_frame)
+function peak_time_frames = detection_leg_movement(video_filename,status)
     % Specify the filename of the video
-    parameter=3.5;% This parameter can be changed if the detection is troublesome, but 3.5 should be the best for the current task
-    
+    parameter=3.2;% This parameter can be changed if the detection is troublesome, but 3-3.5 should be the best for the current task
 
    %declare the parameter that may influence the detection of time:
 
@@ -45,29 +44,6 @@ function peak_time_frames = detection_leg_movement(video_filename,status,start_f
         rescaled_frames(:, :, i) = frame;
     end
     
-    threshold = 0.95;
-    binary_frames = imbinarize(rescaled_frames, threshold);
-    
-    
-    % Initialize an array to hold the filtered binary frames
-    filtered_frames = zeros(size(binary_frames));
-    
-    % Loop over each frame, starting from the second frame
-    for i = 2:num_frames
-        % Get the current frame and the previous frame
-        current_frame = binary_frames(:, :, i);
-        previous_frame = binary_frames(:, :, i-1);
-    
-        % Compute the difference between the current and previous frames
-        diff_frame = abs(double(current_frame) - double(previous_frame));
-    
-        % Store the difference frame in the filtered_frames array
-        filtered_frames(:, :, i) = diff_frame;
-    end
-    
-    % Convert filtered_frames back to uint8 format for display
-    filtered_frames = uint8(filtered_frames * 255);
-    
     % Initialize an array to hold the number of white pixels for each frame
     white_pixels = zeros(1, num_frames);
     
@@ -100,13 +76,45 @@ function peak_time_frames = detection_leg_movement(video_filename,status,start_f
             peak_time_frames(1,i)=1;
         end
     end
-    if status==1
+    %% 
+    if status ==1
+    % Create a VideoReader object to read the video file
+    video = VideoReader(video_filename);
     
-    % Extract the portion of the video between the start and end time frames
-    video_portion = video_frames(:, :, :, start_frame:end_frame);
+    % Read all the frames from the video into a 4D array
+    video_frames = read(video);
     
-    % Play the extracted portion of the video
-    implay(video_portion);
+    % Get the number of frames
+    num_frames = size(video_frames, 4);
+    
+    % Initialize an array to hold the annotated frames
+    annotated_frames = video_frames;
+    
+    % Loop over each frame
+    for i = 1:num_frames
+        % Check if the current frame is a peak time frame
+        if peak_time_frames(i) == 1
+            % Annotate the current frame and the next 9 frames with "Leg Movement"
+            for j = i:min(i+20, num_frames)
+                annotated_frames(:, :, :, j) = insertText(annotated_frames(:, :, :, j), [20 20], 'Leg Movement', 'FontSize', 15, 'BoxColor', 'white', 'BoxOpacity', 0.3);
+            end
+        end
+    end
+    %%
+    %%%%%%%%% create a annotated video version%%%%%%%%%%%%%%%%%%%%%%
+    % Create a VideoWriter object to write the annotated video to a file
+    annotated_video = VideoWriter('annotated_video.avi');
+    
+    % Open the VideoWriter object
+    open(annotated_video);
+    
+    % Write the annotated frames to the video file
+    writeVideo(annotated_video, annotated_frames);
+    
+    % Close the VideoWriter object
+    close(annotated_video);
+    % Play the annotated video using implay function
+    implay('annotated_video.avi');
     end
 end
 
